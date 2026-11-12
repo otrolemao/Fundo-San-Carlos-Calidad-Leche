@@ -818,3 +818,134 @@ td[colspan] {
   }
 }
 
+/* ==========================================================
+   MÓDULO DE GRÁFICOS (Admin y Supervisor)
+   ========================================================== */
+#seccion-grafico {
+  grid-column: 1 / -1;
+}
+
+.grafico-wrap {
+  position: relative;
+  height: 320px;
+  margin-top: 4px;
+}
+
+#grafico-ph {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.grafico__vacio {
+  padding: 36px 0;
+  color: var(--color-graphite-mid);
+  font-family: var(--font-geist-mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-align: center;
+}
+
+/* ==========================================================
+   DEDUCTOR DE PRECIOS (solo Administrador)
+   ========================================================== */
+#seccion-precio {
+  grid-column: 1 / -1;
+}
+
+.precio {
+  background: linear-gradient(180deg, #1a1411 0%, #101012 100%);
+  border-color: rgba(238, 96, 24, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 0 0 1px rgba(238, 96, 24, 0.06),
+    0 30px 60px -38px rgba(238, 96, 24, 0.55);
+}
+
+.precio::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 28px;
+  width: 96px;
+  height: 2px;
+  background: linear-gradient(90deg, var(--color-signal-orange), transparent);
+  pointer-events: none;
+}
+
+.precio__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.precio__dato {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 18px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-ash-stroke-soft);
+  border-radius: var(--radius-md);
+}
+
+.precio__dato--total {
+  background-color: var(--color-signal-orange-soft);
+  border-color: rgba(238, 96, 24, 0.38);
+}
+
+.precio__label {
+  color: var(--color-warm-granite);
+  font-family: var(--font-geist-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.precio__valor {
+  color: var(--color-bone);
+  font-family: var(--font-geist-mono);
+  font-size: 26px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+
+.precio__valor--total {
+  color: var(--color-signal-orange);
+  font-size: 32px;
+  text-shadow: 0 0 24px rgba(238, 96, 24, 0.35);
+}
+
+.precio__meta {
+  color: var(--color-graphite-mid);
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+@media (max-width: 900px) {
+  .precio__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grafico-wrap {
+    height: 260px;
+  }
+
+  .precio__grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .precio__valor {
+    font-size: 22px;
+  }
+
+  .precio__valor--total {
+    font-size: 28px;
+  }
+}
+
+

@@ -36,6 +36,13 @@ const seccionFormulario = document.getElementById('seccion-formulario');
 const contenido = document.getElementById('contenido-principal');
 const rolBadge = document.getElementById('rol-badge');
 const rolBadgeTexto = document.getElementById('rol-badge-texto');
+const seccionGrafico = document.getElementById('seccion-grafico');
+const seccionPrecio = document.getElementById('seccion-precio');
+const canvasGrafico = document.getElementById('grafico-ph');
+const graficoVacio = document.getElementById('grafico-vacio');
+
+// Instancia de Chart.js (se destruye antes de cada redibujado)
+let graficoPh = null;
 
 function normalizar(valor) {
     return String(valor ?? '').trim();
@@ -67,6 +74,15 @@ function aplicarInterfazPorRol() {
     // Configuración: solo Administrador.
     if (btnConfig) {
         btnConfig.hidden = !esAdmin;
+    }
+
+    // Gráfico de tendencia: Admin y Supervisor. Deductor de precios: solo Admin.
+    if (seccionGrafico) {
+        seccionGrafico.hidden = !(esAdmin || esSupervisor);
+    }
+
+    if (seccionPrecio) {
+        seccionPrecio.hidden = !esAdmin;
     }
 
     // Si no hay formulario, la tabla ocupa todo el ancho disponible.
@@ -173,6 +189,213 @@ function filtrarMuestrasPorRol(muestras) {
     );
 }
 
+/* ----------------------------------------------------------
+   Módulo de gráficos (Chart.js)
+   ---------------------------------------------------------- */
+const FUENTE_MONO = "'JetBrains Mono', monospace";
+
+function fechaValida(valor) {
+    const fecha = new Date(valor);
+    return Number.isNaN(fecha.getTime()) ? null : fecha;
+}
+
+function muestrasOrdenadasPorFecha(muestras, ascendente = true) {
+    return [...muestras]
+        .filter((muestra) => fechaValida(muestra.fecha_muestra))
+        .sort((a, b) => {
+            const diferencia = fechaValida(a.fecha_muestra) - fechaValida(b.fecha_muestra);
+            return ascendente ? diferencia : -diferencia;
+        });
+}
+
+function renderGrafico(muestras) {
+    if (!seccionGrafico || seccionGrafico.hidden || !canvasGrafico) return;
+
+    // Destruir la instancia anterior evita el error "Canvas is already in use".
+    if (graficoPh) {
+        graficoPh.destroy();
+        graficoPh = null;
+    }
+
+    if (typeof Chart === 'undefined') {
+        canvasGrafico.hidden = true;
+        if (graficoVacio) {
+            graficoVacio.hidden = false;
+            graficoVacio.textContent = 'No se pudo cargar Chart.js. Revisa tu conexión a internet.';
+        }
+        return;
+    }
+
+    const datos = muestrasOrdenadasPorFecha(muestras);
+    const hayDatos = datos.length > 0;
+
+    canvasGrafico.hidden = !hayDatos;
+    if (graficoVacio) {
+        graficoVacio.hidden = hayDatos;
+        graficoVacio.textContent = 'Sin datos para graficar.';
+    }
+
+    if (!hayDatos) return;
+
+    const etiquetas = datos.map((muestra) =>
+        fechaValida(muestra.fecha_muestra).toLocaleString('es-CL', {
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+        })
+    );
+    const valores = datos.map((muestra) => Number(muestra.valor_ph));
+    const limite = datos.map(() => 6.5);
+
+    graficoPh = new Chart(canvasGrafico, {
+        type: 'line',
+        data: {
+            labels: etiquetas,
+            datasets: [
+                {
+                    label: 'pH',
+                    data: valores,
+                    borderColor: '#ee6018',
+                    backgroundColor: 'rgba(238, 96, 24, 0.12)',
+                    borderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointBackgroundColor: '#ee6018',
+                    pointBorderColor: '#0b0b0c',
+                    pointBorderWidth: 2,
+                    tension: 0.35,
+                    fill: true,
+                },
+                {
+                    label: 'Límite crítico 6.5',
+                    data: limite,
+                    borderColor: '#ff4d4d',
+                    borderDash: [6, 6],
+                    borderWidth: 1.5,
+                    pointRadius: 0,
+                    pointHoverRadius: 0,
+                    fill: false,
+                },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { duration: 450 },
+            interaction: { mode: 'index', intersect: false },
+            plugins: {
+                legend: {
+                    labels: {
+                        color: '#b8b3b0',
+                        font: { family: FUENTE_MONO, size: 10 },
+                        boxWidth: 12,
+                        boxHeight: 2,
+                    },
+                },
+                tooltip: {
+                    backgroundColor: '#141416',
+                    borderColor: '#2a2a2e',
+                    borderWidth: 1,
+                    titleColor: '#ececec',
+                    bodyColor: '#b8b3b0',
+                    titleFont: { family: FUENTE_MONO, size: 11 },
+                    bodyFont: { family: FUENTE_MONO, size: 11 },
+                    padding: 10,
+                    callbacks: {
+                        label: (contexto) =>
+                            ` ${contexto.dataset.label}: ${Number(contexto.parsed.y).toFixed(2)}`,
+                    },
+                },
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
+                    border: { color: '#2a2a2e' },
+                    ticks: {
+                        color: '#6f6b68',
+                        font: { family: FUENTE_MONO, size: 9 },
+                        maxRotation: 0,
+                        autoSkip: true,
+                        maxTicksLimit: 8,
+                    },
+                },
+                y: {
+                    suggestedMin: 6.0,
+                    suggestedMax: 7.0,
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                    border: { color: '#2a2a2e' },
+                    ticks: {
+                        color: '#6f6b68',
+                        font: { family: FUENTE_MONO, size: 10 },
+                        callback: (valor) => Number(valor).toFixed(1),
+                    },
+                },
+            },
+        },
+    });
+}
+
+/* ----------------------------------------------------------
+   Deductor de precios (solo Administrador)
+   ---------------------------------------------------------- */
+const formatoMoneda = new Intl.NumberFormat('es-CL', {
+    style: 'currency',
+    currency: 'CLP',
+    maximumFractionDigits: 0,
+});
+
+function precioPorLitro(ph) {
+    if (ph >= 6.6) return 450;
+    if (ph >= 6.5) return 400;
+    return 0;
+}
+
+function actualizarPrecio(muestras) {
+    if (!seccionPrecio || seccionPrecio.hidden) return;
+
+    const phEl = document.getElementById('precio-ph');
+    const fechaEl = document.getElementById('precio-fecha');
+    const precioEl = document.getElementById('precio-por-litro');
+    const reglaEl = document.getElementById('precio-regla');
+    const volumenEl = document.getElementById('precio-volumen');
+    const totalEl = document.getElementById('precio-total');
+
+    if (!phEl || !precioEl || !volumenEl || !totalEl) return;
+
+    // La muestra más reciente, sin depender del orden que entregue la API.
+    const [ultima] = muestrasOrdenadasPorFecha(muestras, false);
+
+    if (!ultima) {
+        phEl.textContent = '—';
+        if (fechaEl) fechaEl.textContent = 'Sin registros';
+        precioEl.textContent = '—';
+        if (reglaEl) reglaEl.textContent = 'Regla según pH';
+        volumenEl.textContent = '—';
+        totalEl.textContent = '—';
+        return;
+    }
+
+    const ph = Number(ultima.valor_ph);
+    const precio = precioPorLitro(ph);
+    const volumen = Number(ultima.volumen_litros) || 0;
+    const total = precio * volumen;
+    const fecha = fechaValida(ultima.fecha_muestra);
+
+    phEl.textContent = Number.isFinite(ph) ? ph.toFixed(2) : '—';
+    if (fechaEl) fechaEl.textContent = fecha ? fecha.toLocaleString('es-CL') : 'Sin fecha';
+    precioEl.textContent = formatoMoneda.format(precio);
+    if (reglaEl) {
+        reglaEl.textContent = precio === 450
+            ? 'pH ≥ 6.6 · calidad óptima'
+            : precio === 400
+                ? 'pH 6.5–6.6 · alerta'
+                : 'pH < 6.5 · leche cortada';
+    }
+    volumenEl.textContent = `${volumen.toLocaleString('es-CL')} L`;
+    totalEl.textContent = formatoMoneda.format(total);
+}
+
 async function cargarMuestras() {
     if (!tabla) return;
 
@@ -202,10 +425,15 @@ async function cargarMuestras() {
             throw new Error('Respuesta inválida del servidor');
         }
 
-        renderMuestras(filtrarMuestrasPorRol(datos));
+        const visibles = filtrarMuestrasPorRol(datos);
+        renderMuestras(visibles);
+        renderGrafico(visibles);
+        actualizarPrecio(visibles);
     } catch (error) {
         console.error('Error al cargar muestras:', error);
         mostrarMensajeTabla('Error al cargar los datos. Verifica que el backend esté corriendo.');
+        renderGrafico([]);
+        actualizarPrecio([]);
     }
 }
 

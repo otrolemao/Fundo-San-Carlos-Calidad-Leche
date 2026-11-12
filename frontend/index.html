@@ -10,6 +10,9 @@
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+    <!-- Chart.js para el módulo de gráficos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <!-- PROTECCIÓN DE SESIÓN: sin token no se accede al panel -->
     <script>
         if (!localStorage.getItem('token')) {
@@ -94,6 +97,42 @@
                     </tr>
                 </tbody>
             </table>
+        </section>
+
+        <!-- Gráfico de tendencia de pH: Admin y Supervisor -->
+        <section class="card" id="seccion-grafico" hidden>
+            <h2><i class="fas fa-chart-line" aria-hidden="true"></i> Tendencia de pH</h2>
+            <div class="grafico-wrap">
+                <canvas id="grafico-ph" role="img" aria-label="Gráfico de la evolución del pH de las muestras"></canvas>
+            </div>
+            <p class="grafico__vacio" id="grafico-vacio" hidden>Sin datos para graficar.</p>
+        </section>
+
+        <!-- Deductor de precios: solo Administrador -->
+        <section class="card precio" id="seccion-precio" hidden>
+            <h2><i class="fas fa-calculator" aria-hidden="true"></i> Deductor de Precios</h2>
+            <div class="precio__grid">
+                <div class="precio__dato">
+                    <span class="precio__label">Última muestra · pH</span>
+                    <strong class="precio__valor" id="precio-ph">—</strong>
+                    <span class="precio__meta" id="precio-fecha">Sin registros</span>
+                </div>
+                <div class="precio__dato">
+                    <span class="precio__label">Precio por litro</span>
+                    <strong class="precio__valor" id="precio-por-litro">—</strong>
+                    <span class="precio__meta" id="precio-regla">Regla según pH</span>
+                </div>
+                <div class="precio__dato">
+                    <span class="precio__label">Volumen</span>
+                    <strong class="precio__valor" id="precio-volumen">—</strong>
+                    <span class="precio__meta">Última muestra (L)</span>
+                </div>
+                <div class="precio__dato precio__dato--total">
+                    <span class="precio__label">Total estimado</span>
+                    <strong class="precio__valor precio__valor--total" id="precio-total">—</strong>
+                    <span class="precio__meta">Precio × volumen</span>
+                </div>
+            </div>
         </section>
     </main>
 
