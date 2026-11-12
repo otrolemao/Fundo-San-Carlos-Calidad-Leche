@@ -947,5 +947,41 @@ td[colspan] {
     font-size: 28px;
   }
 }
+/* ==========================================================
+   OJO PARA VER CONTRASEÑA (LOGIN)
+   ========================================================== */
+.password-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
 
+.password-wrapper input {
+    width: 100%;
+    padding-right: 45px; /* Espacio para el ícono */
+}
+
+.toggle-password {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--color-warm-granite);
+    cursor: pointer;
+    font-size: 16px;
+    padding: 5px;
+    transition: color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.toggle-password:hover {
+    color: var(--color-signal-orange);
+}
+
+.toggle-password:focus {
+    outline: none;
+    color: var(--color-signal-orange);
+}
 

@@ -3,6 +3,31 @@ const API_URL = 'http://localhost:3001/api/auth/login';
 const formLogin = document.getElementById('form-login');
 const mensajeDiv = document.getElementById('mensaje-login');
 
+// --- LÓGICA PARA MOSTRAR/OCULTAR CONTRASEÑA ---
+const togglePassword = document.getElementById('toggle-password');
+const passwordInput = document.getElementById('password');
+
+if (togglePassword && passwordInput) {
+    togglePassword.addEventListener('click', () => {
+        // Cambiar el tipo de input
+        const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+        passwordInput.setAttribute('type', type);
+        
+        // Cambiar el ícono (ojo abierto / ojo tachado)
+        const icon = togglePassword.querySelector('i');
+        if (type === 'password') {
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+            togglePassword.setAttribute('aria-label', 'Mostrar contraseña');
+        } else {
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+            togglePassword.setAttribute('aria-label', 'Ocultar contraseña');
+        }
+    });
+}
+
+// --- LÓGICA DE LOGIN ---
 formLogin.addEventListener('submit', async (e) => {
     e.preventDefault();
     
