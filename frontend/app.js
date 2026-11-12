@@ -6,21 +6,61 @@ const tabla = document.getElementById('tabla-muestras');
 const mensajeDiv = document.getElementById('mensaje');
 const btnActualizar = document.getElementById('btn-actualizar');
 
+// --- VERIFICACIÓN DE SESIÓN Y ROLES ---
+const token = localStorage.getItem('token');
+const rol = localStorage.getItem('rol');
+const userId = localStorage.getItem('userId');
+
+if (!token) {
+    window.location.href = 'login.html';
+}
+
+// Lógica de visibilidad según el rol
+document.addEventListener('DOMContentLoaded', () => {
+    // Si es Operador (3), ocultamos el botón de actualizar datos generales
+    if (rol === '3') {
+        if (btnActualizar) btnActualizar.style.display = 'none';
+    }
+
+    // Si es Admin (1), podríamos mostrar un botón extra de configuración
+    if (rol === '1') {
+        const header = document.querySelector('header');
+        const btnConfig = document.createElement('button');
+        btnConfig.textContent = '⚙️ CONFIGURACIÓN';
+        btnConfig.style.cssText = 'background: none; border: 1px solid var(--color-ash-stroke); color: var(--color-signal-orange); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: var(--font-geist-mono); font-size: 11px; margin-left: 10px;';
+        btnConfig.onclick = () => alert('Panel de configuración (Próximamente)');
+        header.appendChild(btnConfig);
+    }
+});
+
+// Botón de Cerrar Sesión
+const btnLogout = document.getElementById('btn-logout');
+if (btnLogout) {
+    btnLogout.addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+}
+
 // Función para cargar las muestras (GET)
 async function cargarMuestras() {
     try {
         const response = await fetch(API_URL);
         const data = await response.json();
         
-        tabla.innerHTML = ''; // Limpiar tabla
+        tabla.innerHTML = '';
         
-        if (data.length === 0) {
+        // FILTRO POR ROL: Si es Operador, solo ve sus propias muestras
+        const datosFiltrados = (rol === '3') 
+            ? data.filter(m => m.registrado_por === userId) 
+            : data;
+
+        if (datosFiltrados.length === 0) {
             tabla.innerHTML = '<tr><td colspan="5">No hay muestras registradas.</td></tr>';
             return;
         }
 
-        data.forEach(muestra => {
-            // Lógica del semáforo de pH
+        datosFiltrados.forEach(muestra => {
             let estado = 'Óptimo';
             let claseEstado = 'estado-optimo';
             
@@ -32,7 +72,6 @@ async function cargarMuestras() {
                 claseEstado = 'estado-alerta';
             }
 
-            // Formatear fecha
             const fecha = new Date(muestra.fecha_muestra).toLocaleString('es-CL');
 
             const fila = `
@@ -47,7 +86,7 @@ async function cargarMuestras() {
             tabla.innerHTML += fila;
         });
     } catch (error) {
-        tabla.innerHTML = '<tr><td colspan="5">Error al cargar los datos. Asegúrate de que el backend esté corriendo.</td></tr>';
+        tabla.innerHTML = '<tr><td colspan="5">Error al cargar los datos.</td></tr>';
         console.error('Error:', error);
     }
 }
@@ -57,8 +96,8 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const nuevaMuestra = {
-        lote_id: document.getElementById('lote_id').value,
-        registrado_por: document.getElementById('registrado_por').value,
+        lote_id: "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+        registrado_por: userId,
         valor_ph: parseFloat(document.getElementById('valor_ph').value),
         temperatura: parseFloat(document.getElementById('temperatura').value) || null,
         volumen_litros: parseFloat(document.getElementById('volumen_litros').value)
@@ -75,25 +114,26 @@ form.addEventListener('submit', async (e) => {
             mensajeDiv.textContent = '¡Muestra guardada exitosamente!';
             mensajeDiv.className = 'mensaje exito';
             form.reset();
-            cargarMuestras(); // Recargar la tabla
+            cargarMuestras();
         } else {
             const errorData = await response.json();
             mensajeDiv.textContent = `Error: ${errorData.error}`;
             mensajeDiv.className = 'mensaje error';
         }
     } catch (error) {
-        mensajeDiv.textContent = 'Error de conexión con el servidor.';
+        mensajeDiv.textContent = 'Error de conexión.';
         mensajeDiv.className = 'mensaje error';
     }
 
-    // Ocultar el mensaje después de 3 segundos
     setTimeout(() => {
         mensajeDiv.className = 'mensaje';
     }, 3000);
 });
 
-// Evento para actualizar manualmente
-btnActualizar.addEventListener('click', cargarMuestras);
+// Evento para actualizar manualmente (solo si el botón existe)
+if (btnActualizar) {
+    btnActualizar.addEventListener('click', cargarMuestras);
+}
 
-// Cargar datos al iniciar la página
+// Cargar datos al iniciar
 document.addEventListener('DOMContentLoaded', cargarMuestras);
