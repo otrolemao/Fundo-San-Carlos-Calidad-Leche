@@ -1,4 +1,3 @@
----
 # 🐄 Sistema de Gestión de Calidad de Leche (Sensor de pH) - Fundo San Carlos
 
 ## 📋 Descripción del Proyecto
@@ -29,4 +28,3 @@ El objetivo es desarrollar una **aplicación híbrida** (celular y PC) conectada
 2. Ve a la carpeta `backend` y ejecuta `npm install`.
 3. Crea un archivo `.env` con las credenciales de tu base de datos (ver `.env.example`).
 4. Ejecuta `npm run dev`.
----
