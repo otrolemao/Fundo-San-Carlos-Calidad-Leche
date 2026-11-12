@@ -2,6 +2,8 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -51,6 +53,49 @@ app.post('/api/muestras', async (req, res) => {
     } catch (err) {
         console.error("Error al insertar:", err.message);
         res.status(500).json({ error: err.message });
+    }
+});
+
+// --- RUTAS DE AUTENTICACIÓN ---
+app.post('/api/auth/login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Buscar usuario en la BD
+        const result = await pool.query('SELECT * FROM usuarios WHERE email = $1', [email]);
+        
+        if (result.rows.length === 0) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+        
+        const usuario = result.rows[0];
+        
+        // Comparar contraseña encriptada
+        const validPassword = await bcrypt.compare(password, usuario.password_hash);
+        
+        if (!validPassword) {
+            return res.status(401).json({ error: 'Credenciales inválidas' });
+        }
+        
+        // Crear el Token JWT
+        const token = jwt.sign(
+            { id: usuario.id, rol_id: usuario.rol_id, nombre: usuario.nombre }, 
+            'SECRETO_SUPER_SEGURO',
+            { expiresIn: '2h' }
+        );
+        
+        // Devolver respuesta con ID, Token, Rol y Nombre
+        res.json({ 
+            mensaje: 'Login exitoso', 
+            token: token, 
+            rol: usuario.rol_id, 
+            nombre: usuario.nombre,
+            id: usuario.id // <-- IMPORTANTE: Agregamos el ID
+        });
+        
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Error en el servidor' });
     }
 });
 
