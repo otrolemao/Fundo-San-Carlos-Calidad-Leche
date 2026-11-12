@@ -9,11 +9,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <!-- SCRIPT DE PROTECCIÓN DE SESIÓN -->
+
+    <!-- PROTECCIÓN DE SESIÓN: sin token no se accede al panel -->
     <script>
         if (!localStorage.getItem('token')) {
-            window.location.href = 'login.html';
+            window.location.replace('login.html');
         }
     </script>
 </head>
@@ -22,16 +22,32 @@
         <div class="logo">
             <i class="fas fa-cow"></i> Fundo San Carlos - Control de pH
         </div>
-        <!-- NUEVO: Botón de Cerrar Sesión -->
-        <button id="btn-logout" style="background: none; border: 1px solid var(--color-ash-stroke); color: var(--color-warm-granite); padding: 8px 16px; border-radius: 6px; cursor: pointer; font-family: var(--font-geist-mono); font-size: 11px;">
-            <i class="fas fa-sign-out-alt"></i> SALIR
-        </button>
+
+        <div class="header-actions">
+            <span class="version-tag">TERMINAL // v1.0</span>
+
+            <!-- Rol activo (lo completa app.js según localStorage) -->
+            <span id="rol-badge" class="rol-badge rol-badge--desconocido">
+                <span id="rol-badge-texto">SIN ROL</span>
+            </span>
+
+            <!-- Solo Administrador (rol 1) -->
+            <button id="btn-config" type="button" class="btn-ghost" aria-label="Configuración" hidden>
+                <i class="fas fa-sliders-h" aria-hidden="true"></i>
+                <span class="btn-text">Configuración</span>
+            </button>
+
+            <button id="btn-logout" type="button" class="btn-ghost btn-ghost--danger" aria-label="Cerrar sesión">
+                <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
+                <span class="btn-text">Salir</span>
+            </button>
+        </div>
     </header>
 
-    <main class="container">
-        <!-- Formulario de Registro -->
-        <section class="card">
-            <h2><i class="fas fa-flask"></i> Registrar Nueva Muestra</h2>
+    <main class="container" id="contenido-principal">
+        <!-- Formulario de Registro: Admin (1) y Operador (3). Oculto para Supervisor (2). -->
+        <section class="card" id="seccion-formulario">
+            <h2><i class="fas fa-flask" aria-hidden="true"></i> Registrar Nueva Muestra</h2>
             <form id="form-muestra">
                 <div class="input-group">
                     <label for="valor_ph">Valor de pH:</label>
@@ -45,20 +61,23 @@
                     <label for="volumen_litros">Volumen (Litros):</label>
                     <input type="number" id="volumen_litros" step="0.1" min="0" required placeholder="Ej: 1000">
                 </div>
-                
-                <!-- IDs de prueba (dejamos los que creamos en la BD) -->
+
+                <!-- Lote de prueba creado en la BD -->
                 <input type="hidden" id="lote_id" value="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11">
-                <input type="hidden" id="registrado_por" value="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11">
-                
-                <button type="submit" class="btn-guardar"><i class="fas fa-save"></i> Guardar Muestra</button>
+
+                <button type="submit" class="btn-guardar">
+                    <i class="fas fa-save" aria-hidden="true"></i> Guardar Muestra
+                </button>
             </form>
-            <div id="mensaje" class="mensaje"></div>
+            <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
         </section>
 
-        <!-- Tabla de Historial -->
-        <section class="card">
-            <h2><i class="fas fa-list"></i> Historial de Calidad</h2>
-            <button id="btn-actualizar" class="btn-actualizar"><i class="fas fa-sync-alt"></i> Actualizar Datos</button>
+        <!-- Tabla de Historial: visible para los tres roles (Operador solo ve sus muestras) -->
+        <section class="card" id="seccion-historial">
+            <h2><i class="fas fa-list" aria-hidden="true"></i> Historial de Calidad</h2>
+            <button id="btn-actualizar" class="btn-actualizar" type="button">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i> Actualizar Datos
+            </button>
             <table>
                 <thead>
                     <tr>
@@ -78,15 +97,37 @@
         </section>
     </main>
 
+    <!-- Panel de configuración (solo Administrador) -->
+    <dialog id="modal-config" class="modal" aria-labelledby="modal-config-titulo">
+        <div class="modal__panel">
+            <div class="modal__header">
+                <h2 id="modal-config-titulo"><i class="fas fa-sliders-h" aria-hidden="true"></i> Configuración</h2>
+                <button type="button" id="btn-cerrar-config" class="btn-ghost" aria-label="Cerrar configuración">
+                    <i class="fas fa-times" aria-hidden="true"></i>
+                </button>
+            </div>
+
+            <dl class="modal__datos">
+                <div>
+                    <dt>Usuario</dt>
+                    <dd id="config-nombre">-</dd>
+                </div>
+                <div>
+                    <dt>Rol</dt>
+                    <dd id="config-rol">-</dd>
+                </div>
+                <div>
+                    <dt>ID de sesión</dt>
+                    <dd id="config-id">-</dd>
+                </div>
+            </dl>
+
+            <p class="modal__nota">
+                Módulo de configuración en construcción: aquí se administrarán usuarios, lotes y reglas de alerta de pH.
+            </p>
+        </div>
+    </dialog>
+
     <script src="app.js"></script>
-    <script>
-        // Lógica para el botón de cerrar sesión
-        document.getElementById('btn-logout').addEventListener('click', () => {
-            localStorage.removeItem('token');
-            localStorage.removeItem('rol');
-            localStorage.removeItem('nombre');
-            window.location.href = 'login.html';
-        });
-    </script>
 </body>
 </html>

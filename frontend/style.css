@@ -114,8 +114,7 @@ header {
   backdrop-filter: blur(14px) saturate(140%);
 }
 
-header::after {
-  content: "TERMINAL // v1.0";
+.version-tag {
   font-family: var(--font-geist-mono);
   font-size: 10.5px;
   letter-spacing: 0.16em;
@@ -556,7 +555,7 @@ td[colspan] {
     padding: 12px 18px;
   }
 
-  header::after {
+  .version-tag {
     display: none;
   }
 
@@ -591,3 +590,231 @@ td[colspan] {
     font-size: 10.5px;
   }
 }
+
+/* ==========================================================
+   SESIÓN Y ROLES
+   ========================================================== */
+
+/* El atributo hidden debe ganarle a display de componentes */
+[hidden] {
+  display: none !important;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Badge de rol activo */
+.rol-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px;
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-ash-stroke);
+  border-radius: 999px;
+  color: var(--color-pale-stone);
+  font-family: var(--font-geist-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.rol-badge::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: currentColor;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.rol-badge--admin {
+  background-color: var(--color-signal-orange-soft);
+  border-color: rgba(238, 96, 24, 0.4);
+  color: var(--color-signal-orange);
+}
+
+.rol-badge--supervisor {
+  background-color: rgba(160, 202, 146, 0.08);
+  border-color: rgba(160, 202, 146, 0.32);
+  color: var(--color-metric-green);
+}
+
+.rol-badge--operador {
+  color: var(--color-pale-stone);
+}
+
+.rol-badge--desconocido {
+  background-color: rgba(227, 179, 65, 0.08);
+  border-color: rgba(227, 179, 65, 0.3);
+  color: var(--color-metric-amber);
+}
+
+/* Botones de cabecera (configuración / salir) */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  background-color: transparent;
+  border: 1px solid var(--color-ash-stroke);
+  border-radius: 999px;
+  color: var(--color-warm-granite);
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: color 0.18s ease, border-color 0.18s ease, background-color 0.18s ease;
+}
+
+.btn-ghost i {
+  font-size: 10px;
+}
+
+.btn-ghost:hover {
+  background-color: var(--color-signal-orange-soft);
+  border-color: rgba(238, 96, 24, 0.5);
+  color: var(--color-signal-orange-hover);
+}
+
+.btn-ghost:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn-ghost--danger:hover {
+  color: #ffb083;
+}
+
+/* Cuando el formulario está oculto (rol Supervisor) la tabla usa todo el ancho */
+.container--full {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* Sin botón "Actualizar" visible, el título no reserva espacio para él */
+.card:has(.btn-actualizar[hidden]) h2 {
+  padding-right: 0;
+}
+
+/* ----------------------------------------------------------
+   Modal de configuración (Administrador)
+   ---------------------------------------------------------- */
+.modal {
+  width: min(460px, calc(100% - 32px));
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-bone);
+}
+
+.modal::backdrop {
+  background-color: rgba(4, 4, 6, 0.72);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.modal__panel {
+  padding: 24px;
+  background: linear-gradient(180deg, var(--color-carbon-lift) 0%, #101012 100%);
+  border: 1px solid var(--color-ash-stroke);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-panel);
+}
+
+.modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--color-ash-stroke);
+}
+
+.modal__header h2 {
+  margin: 0;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.modal__datos {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+}
+
+.modal__datos > div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--color-ash-stroke-soft);
+}
+
+.modal__datos dt {
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-graphite-mid);
+}
+
+.modal__datos dd {
+  margin: 0;
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+  color: var(--color-bone);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.modal__nota {
+  margin-top: 18px;
+  color: var(--color-graphite-mid);
+  font-family: var(--font-geist-mono);
+  font-size: 10.5px;
+  line-height: 1.7;
+}
+
+/* ----------------------------------------------------------
+   Responsive de la barra de sesión
+   ---------------------------------------------------------- */
+@media (max-width: 640px) {
+  .header-actions {
+    gap: 8px;
+  }
+
+  .btn-ghost {
+    padding: 7px 11px;
+    font-size: 9.5px;
+  }
+
+  /* En móvil los botones quedan solo con icono (tienen aria-label) */
+  .btn-ghost .btn-text {
+    display: none;
+  }
+
+  .rol-badge {
+    padding: 5px 9px;
+    font-size: 9px;
+  }
+
+  .modal__panel {
+    padding: 18px;
+  }
+}
+
+@media (max-width: 520px) {
+  .rol-badge {
+    display: none;
+  }
+}
+
