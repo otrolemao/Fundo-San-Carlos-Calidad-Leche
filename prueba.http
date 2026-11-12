@@ -1,0 +1,10 @@
+POST http://localhost:3001/api/muestras
+Content-Type: application/json
+
+{
+    "lote_id": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    "registrado_por": "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+    "valor_ph": 6.8,
+    "temperatura": 4.0,
+    "volumen_litros": 1000
+}
