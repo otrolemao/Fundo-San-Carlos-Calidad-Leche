@@ -41,7 +41,14 @@ const seccionPrecio = document.getElementById('seccion-precio');
 const canvasGrafico = document.getElementById('grafico-ph');
 const graficoVacio = document.getElementById('grafico-vacio');
 
-// Instancia de Chart.js (se destruye antes de cada redibujado)
+// Elementos de selección/eliminación
+const thCheckbox = document.getElementById('th-checkbox');
+const checkTodos = document.getElementById('check-todos');
+const btnSeleccionarTodo = document.getElementById('btn-seleccionar-todo');
+const btnEliminar = document.getElementById('btn-eliminar-seleccionados');
+const accionesTabla = document.getElementById('acciones-tabla');
+
+// Instancia de Chart.js
 let graficoPh = null;
 
 function normalizar(valor) {
@@ -66,7 +73,7 @@ function aplicarInterfazPorRol() {
         seccionFormulario.hidden = esSupervisor || !clave;
     }
 
-    // Actualizar Datos: visible salvo para Operador (su tabla se refresca al registrar).
+    // Actualizar Datos: visible salvo para Operador
     if (btnActualizar) {
         btnActualizar.hidden = esOperador;
     }
@@ -76,38 +83,42 @@ function aplicarInterfazPorRol() {
         btnConfig.hidden = !esAdmin;
     }
 
-    // Gráfico de tendencia: Admin y Supervisor. Deductor de precios: solo Admin.
+    // Gráfico: Admin y Supervisor. Precios: solo Admin.
     if (seccionGrafico) {
         seccionGrafico.hidden = !(esAdmin || esSupervisor);
     }
-
     if (seccionPrecio) {
         seccionPrecio.hidden = !esAdmin;
     }
 
-    // Si no hay formulario, la tabla ocupa todo el ancho disponible.
+    // Si no hay formulario, la tabla ocupa todo el ancho.
     if (contenido) {
         contenido.classList.toggle('container--full', seccionFormulario ? seccionFormulario.hidden : false);
     }
 
-    // Badge de rol en el header
+    // Badge de rol
     if (rolBadge && rolBadgeTexto) {
         const info = clave ? ROLES[clave] : null;
         rolBadge.className = `rol-badge rol-badge--${info ? info.clave : 'desconocido'}`;
         rolBadgeTexto.textContent = info ? info.nombre.toUpperCase() : 'SIN ROL';
-        rolBadge.title = info
-            ? `${nombreUsuario || 'Usuario'} · ${info.nombre}`
-            : 'Sin rol asignado en la sesión';
     }
 
-    // Datos de la sesión en el panel de configuración
+    // Datos de sesión en configuración
     const configNombre = document.getElementById('config-nombre');
     const configRol = document.getElementById('config-rol');
     const configId = document.getElementById('config-id');
-
     if (configNombre) configNombre.textContent = nombreUsuario || 'Sin nombre';
     if (configRol) configRol.textContent = clave ? ROLES[clave].nombre : 'Sin rol asignado';
     if (configId) configId.textContent = userId || 'No disponible';
+
+    // --- Lógica de Eliminación (Solo Admin) ---
+    if (esAdmin) {
+        if (thCheckbox) thCheckbox.style.display = 'table-cell';
+        if (accionesTabla) accionesTabla.style.display = 'flex';
+    } else {
+        if (thCheckbox) thCheckbox.style.display = 'none';
+        if (accionesTabla) accionesTabla.style.display = 'none';
+    }
 }
 
 /* ----------------------------------------------------------
@@ -115,13 +126,8 @@ function aplicarInterfazPorRol() {
    ---------------------------------------------------------- */
 function evaluarPh(valorPh) {
     const ph = Number(valorPh);
-
-    if (ph < 6.5) {
-        return { estado: 'Crítico (Cortada)', clase: 'estado-critico' };
-    }
-    if (ph < 6.6) {
-        return { estado: 'Alerta', clase: 'estado-alerta' };
-    }
+    if (ph < 6.5) return { estado: 'Crítico (Cortada)', clase: 'estado-critico' };
+    if (ph < 6.6) return { estado: 'Alerta', clase: 'estado-alerta' };
     return { estado: 'Óptimo', clase: 'estado-optimo' };
 }
 
@@ -136,7 +142,8 @@ function mostrarMensajeTabla(texto) {
     tabla.replaceChildren();
     const fila = document.createElement('tr');
     const celda = document.createElement('td');
-    celda.colSpan = 5;
+    // Si es Admin, la tabla tiene 6 columnas (1 checkbox + 5 datos). Si no, 5.
+    celda.colSpan = rolActual() === '1' ? 6 : 5;
     celda.textContent = texto;
     fila.appendChild(celda);
     tabla.appendChild(fila);
@@ -145,10 +152,10 @@ function mostrarMensajeTabla(texto) {
 function renderMuestras(muestras) {
     if (!tabla) return;
 
+    const esAdmin = rolActual() === '1';
+
     if (muestras.length === 0) {
-        mostrarMensajeTabla(rolActual() === '3'
-            ? 'Aún no tienes muestras registradas.'
-            : 'No hay muestras registradas.');
+        mostrarMensajeTabla(rolActual() === '3' ? 'Aún no tienes muestras registradas.' : 'No hay muestras registradas.');
         return;
     }
 
@@ -156,11 +163,20 @@ function renderMuestras(muestras) {
 
     muestras.forEach((muestra) => {
         const fila = document.createElement('tr');
+        fila.dataset.id = muestra.id;
 
-        const fecha = muestra.fecha_muestra
-            ? new Date(muestra.fecha_muestra).toLocaleString('es-CL')
-            : '-';
+        // Columna de checkbox SOLO para Admin
+        if (esAdmin) {
+            const tdCheck = document.createElement('td');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'check-fila';
+            checkbox.value = muestra.id;
+            tdCheck.appendChild(checkbox);
+            fila.appendChild(tdCheck);
+        }
 
+        const fecha = muestra.fecha_muestra ? new Date(muestra.fecha_muestra).toLocaleString('es-CL') : '-';
         fila.appendChild(crearCelda(fecha));
         fila.appendChild(crearCelda(muestra.valor_ph));
         fila.appendChild(crearCelda(muestra.temperatura ?? '-'));
@@ -178,19 +194,15 @@ function renderMuestras(muestras) {
     tabla.replaceChildren(fragmento);
 }
 
-// El Operador solo ve sus propias muestras (registrado_por === userId).
 function filtrarMuestrasPorRol(muestras) {
     if (rolActual() !== '3') return muestras;
     if (!userId) return [];
-
     const idSesion = userId.toLowerCase();
-    return muestras.filter((muestra) =>
-        normalizar(muestra.registrado_por).toLowerCase() === idSesion
-    );
+    return muestras.filter((muestra) => normalizar(muestra.registrado_por).toLowerCase() === idSesion);
 }
 
 /* ----------------------------------------------------------
-   Módulo de gráficos (Chart.js)
+   Gráfico y Precios
    ---------------------------------------------------------- */
 const FUENTE_MONO = "'JetBrains Mono', monospace";
 
@@ -210,42 +222,25 @@ function muestrasOrdenadasPorFecha(muestras, ascendente = true) {
 
 function renderGrafico(muestras) {
     if (!seccionGrafico || seccionGrafico.hidden || !canvasGrafico) return;
-
-    // Destruir la instancia anterior evita el error "Canvas is already in use".
-    if (graficoPh) {
-        graficoPh.destroy();
-        graficoPh = null;
-    }
+    if (graficoPh) { graficoPh.destroy(); graficoPh = null; }
 
     if (typeof Chart === 'undefined') {
         canvasGrafico.hidden = true;
-        if (graficoVacio) {
-            graficoVacio.hidden = false;
-            graficoVacio.textContent = 'No se pudo cargar Chart.js. Revisa tu conexión a internet.';
-        }
+        if (graficoVacio) { graficoVacio.hidden = false; graficoVacio.textContent = 'No se pudo cargar Chart.js.'; }
         return;
     }
 
     const datos = muestrasOrdenadasPorFecha(muestras);
     const hayDatos = datos.length > 0;
-
     canvasGrafico.hidden = !hayDatos;
     if (graficoVacio) {
         graficoVacio.hidden = hayDatos;
         graficoVacio.textContent = 'Sin datos para graficar.';
     }
-
     if (!hayDatos) return;
 
-    const etiquetas = datos.map((muestra) =>
-        fechaValida(muestra.fecha_muestra).toLocaleString('es-CL', {
-            day: '2-digit',
-            month: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-        })
-    );
-    const valores = datos.map((muestra) => Number(muestra.valor_ph));
+    const etiquetas = datos.map((m) => fechaValida(m.fecha_muestra).toLocaleString('es-CL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }));
+    const valores = datos.map((m) => Number(m.valor_ph));
     const limite = datos.map(() => 6.5);
 
     graficoPh = new Chart(canvasGrafico, {
@@ -253,97 +248,22 @@ function renderGrafico(muestras) {
         data: {
             labels: etiquetas,
             datasets: [
-                {
-                    label: 'pH',
-                    data: valores,
-                    borderColor: '#ee6018',
-                    backgroundColor: 'rgba(238, 96, 24, 0.12)',
-                    borderWidth: 2,
-                    pointRadius: 4,
-                    pointHoverRadius: 6,
-                    pointBackgroundColor: '#ee6018',
-                    pointBorderColor: '#0b0b0c',
-                    pointBorderWidth: 2,
-                    tension: 0.35,
-                    fill: true,
-                },
-                {
-                    label: 'Límite crítico 6.5',
-                    data: limite,
-                    borderColor: '#ff4d4d',
-                    borderDash: [6, 6],
-                    borderWidth: 1.5,
-                    pointRadius: 0,
-                    pointHoverRadius: 0,
-                    fill: false,
-                },
+                { label: 'pH', data: valores, borderColor: '#ee6018', backgroundColor: 'rgba(238, 96, 24, 0.12)', borderWidth: 2, pointRadius: 4, pointBackgroundColor: '#ee6018', tension: 0.35, fill: true },
+                { label: 'Límite crítico 6.5', data: limite, borderColor: '#ff4d4d', borderDash: [6, 6], borderWidth: 1.5, pointRadius: 0, fill: false }
             ],
         },
         options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: { duration: 450 },
-            interaction: { mode: 'index', intersect: false },
-            plugins: {
-                legend: {
-                    labels: {
-                        color: '#b8b3b0',
-                        font: { family: FUENTE_MONO, size: 10 },
-                        boxWidth: 12,
-                        boxHeight: 2,
-                    },
-                },
-                tooltip: {
-                    backgroundColor: '#141416',
-                    borderColor: '#2a2a2e',
-                    borderWidth: 1,
-                    titleColor: '#ececec',
-                    bodyColor: '#b8b3b0',
-                    titleFont: { family: FUENTE_MONO, size: 11 },
-                    bodyFont: { family: FUENTE_MONO, size: 11 },
-                    padding: 10,
-                    callbacks: {
-                        label: (contexto) =>
-                            ` ${contexto.dataset.label}: ${Number(contexto.parsed.y).toFixed(2)}`,
-                    },
-                },
-            },
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#b8b3b0', font: { family: FUENTE_MONO, size: 10 } } } },
             scales: {
-                x: {
-                    grid: { color: 'rgba(255, 255, 255, 0.04)' },
-                    border: { color: '#2a2a2e' },
-                    ticks: {
-                        color: '#6f6b68',
-                        font: { family: FUENTE_MONO, size: 9 },
-                        maxRotation: 0,
-                        autoSkip: true,
-                        maxTicksLimit: 8,
-                    },
-                },
-                y: {
-                    suggestedMin: 6.0,
-                    suggestedMax: 7.0,
-                    grid: { color: 'rgba(255, 255, 255, 0.05)' },
-                    border: { color: '#2a2a2e' },
-                    ticks: {
-                        color: '#6f6b68',
-                        font: { family: FUENTE_MONO, size: 10 },
-                        callback: (valor) => Number(valor).toFixed(1),
-                    },
-                },
+                x: { grid: { color: 'rgba(255, 255, 255, 0.04)' }, ticks: { color: '#6f6b68', font: { family: FUENTE_MONO, size: 9 } } },
+                y: { suggestedMin: 6.0, suggestedMax: 7.0, grid: { color: 'rgba(255, 255, 255, 0.05)' }, ticks: { color: '#6f6b68', font: { family: FUENTE_MONO, size: 10 } } },
             },
         },
     });
 }
 
-/* ----------------------------------------------------------
-   Deductor de precios (solo Administrador)
-   ---------------------------------------------------------- */
-const formatoMoneda = new Intl.NumberFormat('es-CL', {
-    style: 'currency',
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-});
+const formatoMoneda = new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 });
 
 function precioPorLitro(ph) {
     if (ph >= 6.6) return 450;
@@ -353,26 +273,19 @@ function precioPorLitro(ph) {
 
 function actualizarPrecio(muestras) {
     if (!seccionPrecio || seccionPrecio.hidden) return;
-
     const phEl = document.getElementById('precio-ph');
     const fechaEl = document.getElementById('precio-fecha');
     const precioEl = document.getElementById('precio-por-litro');
     const reglaEl = document.getElementById('precio-regla');
     const volumenEl = document.getElementById('precio-volumen');
     const totalEl = document.getElementById('precio-total');
-
     if (!phEl || !precioEl || !volumenEl || !totalEl) return;
 
-    // La muestra más reciente, sin depender del orden que entregue la API.
     const [ultima] = muestrasOrdenadasPorFecha(muestras, false);
-
     if (!ultima) {
-        phEl.textContent = '—';
-        if (fechaEl) fechaEl.textContent = 'Sin registros';
-        precioEl.textContent = '—';
-        if (reglaEl) reglaEl.textContent = 'Regla según pH';
-        volumenEl.textContent = '—';
-        totalEl.textContent = '—';
+        phEl.textContent = '—'; if (fechaEl) fechaEl.textContent = 'Sin registros';
+        precioEl.textContent = '—'; if (reglaEl) reglaEl.textContent = 'Regla según pH';
+        volumenEl.textContent = '—'; totalEl.textContent = '—';
         return;
     }
 
@@ -386,44 +299,28 @@ function actualizarPrecio(muestras) {
     if (fechaEl) fechaEl.textContent = fecha ? fecha.toLocaleString('es-CL') : 'Sin fecha';
     precioEl.textContent = formatoMoneda.format(precio);
     if (reglaEl) {
-        reglaEl.textContent = precio === 450
-            ? 'pH ≥ 6.6 · calidad óptima'
-            : precio === 400
-                ? 'pH 6.5–6.6 · alerta'
-                : 'pH < 6.5 · leche cortada';
+        reglaEl.textContent = precio === 450 ? 'pH ≥ 6.6 · calidad óptima' : precio === 400 ? 'pH 6.5–6.6 · alerta' : 'pH < 6.5 · leche cortada';
     }
     volumenEl.textContent = `${volumen.toLocaleString('es-CL')} L`;
     totalEl.textContent = formatoMoneda.format(total);
 }
 
+/* ----------------------------------------------------------
+   Carga de datos
+   ---------------------------------------------------------- */
 async function cargarMuestras() {
     if (!tabla) return;
-
-    if (rolActual() === '3' && !userId) {
-        mostrarMensajeTabla('No se pudo identificar tu usuario. Vuelve a iniciar sesión.');
-        return;
-    }
+    if (rolActual() === '3' && !userId) { mostrarMensajeTabla('No se pudo identificar tu usuario.'); return; }
 
     mostrarMensajeTabla('Cargando datos...');
 
     try {
-        const respuesta = await fetch(API_URL, {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
-        });
-
-        if (respuesta.status === 401) {
-            cerrarSesion();
-            return;
-        }
-
-        if (!respuesta.ok) {
-            throw new Error(`HTTP ${respuesta.status}`);
-        }
+        const respuesta = await fetch(API_URL, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+        if (respuesta.status === 401) { cerrarSesion(); return; }
+        if (!respuesta.ok) throw new Error(`HTTP ${respuesta.status}`);
 
         const datos = await respuesta.json();
-        if (!Array.isArray(datos)) {
-            throw new Error('Respuesta inválida del servidor');
-        }
+        if (!Array.isArray(datos)) throw new Error('Respuesta inválida');
 
         const visibles = filtrarMuestrasPorRol(datos);
         renderMuestras(visibles);
@@ -431,27 +328,22 @@ async function cargarMuestras() {
         actualizarPrecio(visibles);
     } catch (error) {
         console.error('Error al cargar muestras:', error);
-        mostrarMensajeTabla('Error al cargar los datos. Verifica que el backend esté corriendo.');
+        mostrarMensajeTabla('Error al cargar los datos.');
         renderGrafico([]);
         actualizarPrecio([]);
     }
 }
 
 /* ----------------------------------------------------------
-   Mensajes del formulario
+   Mensajes
    ---------------------------------------------------------- */
 let temporizadorMensaje = null;
-
 function mostrarMensaje(texto, tipo) {
     if (!mensajeDiv) return;
-
     mensajeDiv.textContent = texto;
     mensajeDiv.className = `mensaje ${tipo}`;
-
     clearTimeout(temporizadorMensaje);
-    temporizadorMensaje = setTimeout(() => {
-        mensajeDiv.className = 'mensaje';
-    }, 3000);
+    temporizadorMensaje = setTimeout(() => { mensajeDiv.className = 'mensaje'; }, 3000);
 }
 
 /* ----------------------------------------------------------
@@ -460,18 +352,9 @@ function mostrarMensaje(texto, tipo) {
 if (form) {
     form.addEventListener('submit', async (evento) => {
         evento.preventDefault();
-
-        // Solo Admin y Operador registran muestras.
         const clave = rolActual();
-        if (clave !== '1' && clave !== '3') {
-            mostrarMensaje('Tu rol no tiene permiso para registrar muestras.', 'error');
-            return;
-        }
-
-        if (!userId) {
-            mostrarMensaje('Sesión sin ID de usuario. Vuelve a iniciar sesión.', 'error');
-            return;
-        }
+        if (clave !== '1' && clave !== '3') { mostrarMensaje('Tu rol no tiene permiso.', 'error'); return; }
+        if (!userId) { mostrarMensaje('Sesión sin ID.', 'error'); return; }
 
         const loteInput = document.getElementById('lote_id');
         const nuevaMuestra = {
@@ -485,63 +368,79 @@ if (form) {
         try {
             const respuesta = await fetch(API_URL, {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { Authorization: `Bearer ${token}` } : {})
-                },
+                headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
                 body: JSON.stringify(nuevaMuestra)
             });
-
-            if (respuesta.status === 401) {
-                cerrarSesion();
-                return;
-            }
-
+            if (respuesta.status === 401) { cerrarSesion(); return; }
             if (respuesta.ok) {
                 mostrarMensaje('¡Muestra guardada exitosamente!', 'exito');
                 form.reset();
                 await cargarMuestras();
             } else {
                 const errorData = await respuesta.json().catch(() => ({}));
-                mostrarMensaje(`Error: ${errorData.error || 'no se pudo guardar la muestra'}`, 'error');
+                mostrarMensaje(`Error: ${errorData.error || 'no se pudo guardar'}`, 'error');
             }
         } catch (error) {
-            console.error('Error al guardar muestra:', error);
-            mostrarMensaje('Error de conexión con el servidor.', 'error');
+            mostrarMensaje('Error de conexión.', 'error');
         }
     });
 }
 
-if (btnActualizar) {
-    btnActualizar.addEventListener('click', cargarMuestras);
-}
+if (btnActualizar) btnActualizar.addEventListener('click', cargarMuestras);
 
 function cerrarSesion() {
     ['token', 'rol', 'nombre', 'userId'].forEach((clave) => localStorage.removeItem(clave));
     window.location.replace(RUTA_LOGIN);
 }
+if (btnLogout) btnLogout.addEventListener('click', cerrarSesion);
 
-if (btnLogout) {
-    btnLogout.addEventListener('click', cerrarSesion);
+if (btnConfig && modalConfig) {
+    btnConfig.addEventListener('click', () => { if (typeof modalConfig.showModal === 'function') modalConfig.showModal(); else modalConfig.setAttribute('open', ''); });
+    if (btnCerrarConfig) btnCerrarConfig.addEventListener('click', () => modalConfig.close());
+    modalConfig.addEventListener('click', (e) => { if (e.target === modalConfig) modalConfig.close(); });
 }
 
-/* Panel de configuración (solo Admin) */
-if (btnConfig && modalConfig) {
-    btnConfig.addEventListener('click', () => {
-        if (typeof modalConfig.showModal === 'function') {
-            modalConfig.showModal();
-        } else {
-            modalConfig.setAttribute('open', '');
-        }
+// --- SELECCIÓN Y ELIMINACIÓN ---
+if (checkTodos) {
+    checkTodos.addEventListener('change', (e) => {
+        const checks = tabla.querySelectorAll('.check-fila');
+        checks.forEach(chk => chk.checked = e.target.checked);
     });
+}
 
-    if (btnCerrarConfig) {
-        btnCerrarConfig.addEventListener('click', () => modalConfig.close());
-    }
+if (btnSeleccionarTodo) {
+    btnSeleccionarTodo.addEventListener('click', () => {
+        const checks = tabla.querySelectorAll('.check-fila');
+        const todosMarcados = Array.from(checks).every(chk => chk.checked);
+        checks.forEach(chk => chk.checked = !todosMarcados);
+        if (checkTodos) checkTodos.checked = !todosMarcados;
+    });
+}
 
-    // Cerrar al hacer clic fuera del panel
-    modalConfig.addEventListener('click', (evento) => {
-        if (evento.target === modalConfig) modalConfig.close();
+if (btnEliminar) {
+    btnEliminar.addEventListener('click', async () => {
+        const checks = tabla.querySelectorAll('.check-fila:checked');
+        const ids = Array.from(checks).map(chk => chk.value);
+
+        if (ids.length === 0) { alert('Selecciona al menos una muestra.'); return; }
+        if (!confirm(`¿Eliminar ${ids.length} muestra(s)?`)) return;
+
+        try {
+            const response = await fetch(API_URL, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ ids })
+            });
+            if (response.ok) {
+                alert('Muestras eliminadas.');
+                cargarMuestras();
+            } else {
+                const error = await response.json();
+                alert(`Error: ${error.error}`);
+            }
+        } catch (error) {
+            alert('Error de conexión.');
+        }
     });
 }
 

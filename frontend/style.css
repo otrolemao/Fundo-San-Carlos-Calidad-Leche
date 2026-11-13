@@ -984,4 +984,38 @@ td[colspan] {
     outline: none;
     color: var(--color-signal-orange);
 }
+/* --- SCROLL EN LA TABLA --- */
+.tabla-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: auto;
+    margin-top: 16px;
+    border: 1px solid var(--color-ash-stroke);
+    border-radius: var(--radius-sm);
+}
 
+.tabla-scroll thead th {
+    position: sticky;
+    top: 0;
+    background-color: var(--color-carbon-lift);
+    z-index: 10;
+    border-bottom: 1px solid var(--color-ash-stroke);
+}
+
+/* --- BARRA DE ACCIONES --- */
+.acciones-tabla {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+    padding: 10px;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--color-ash-stroke);
+    border-radius: var(--radius-sm);
+}
+
+.check-fila, #check-todos {
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--color-signal-orange);
+}

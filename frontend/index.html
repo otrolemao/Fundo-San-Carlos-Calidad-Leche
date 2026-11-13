@@ -9,11 +9,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <!-- Chart.js para el módulo de gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- PROTECCIÓN DE SESIÓN: sin token no se accede al panel -->
     <script>
         if (!localStorage.getItem('token')) {
             window.location.replace('login.html');
@@ -25,21 +22,15 @@
         <div class="logo">
             <i class="fas fa-cow"></i> Fundo San Carlos - Control de pH
         </div>
-
         <div class="header-actions">
             <span class="version-tag">TERMINAL // v1.0</span>
-
-            <!-- Rol activo (lo completa app.js según localStorage) -->
             <span id="rol-badge" class="rol-badge rol-badge--desconocido">
                 <span id="rol-badge-texto">SIN ROL</span>
             </span>
-
-            <!-- Solo Administrador (rol 1) -->
             <button id="btn-config" type="button" class="btn-ghost" aria-label="Configuración" hidden>
                 <i class="fas fa-sliders-h" aria-hidden="true"></i>
                 <span class="btn-text">Configuración</span>
             </button>
-
             <button id="btn-logout" type="button" class="btn-ghost btn-ghost--danger" aria-label="Cerrar sesión">
                 <i class="fas fa-sign-out-alt" aria-hidden="true"></i>
                 <span class="btn-text">Salir</span>
@@ -48,7 +39,6 @@
     </header>
 
     <main class="container" id="contenido-principal">
-        <!-- Formulario de Registro: Admin (1) y Operador (3). Oculto para Supervisor (2). -->
         <section class="card" id="seccion-formulario">
             <h2><i class="fas fa-flask" aria-hidden="true"></i> Registrar Nueva Muestra</h2>
             <form id="form-muestra">
@@ -64,10 +54,7 @@
                     <label for="volumen_litros">Volumen (Litros):</label>
                     <input type="number" id="volumen_litros" step="0.1" min="0" required placeholder="Ej: 1000">
                 </div>
-
-                <!-- Lote de prueba creado en la BD -->
                 <input type="hidden" id="lote_id" value="a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11">
-
                 <button type="submit" class="btn-guardar">
                     <i class="fas fa-save" aria-hidden="true"></i> Guardar Muestra
                 </button>
@@ -75,31 +62,42 @@
             <div id="mensaje" class="mensaje" role="status" aria-live="polite"></div>
         </section>
 
-        <!-- Tabla de Historial: visible para los tres roles (Operador solo ve sus muestras) -->
         <section class="card" id="seccion-historial">
             <h2><i class="fas fa-list" aria-hidden="true"></i> Historial de Calidad</h2>
+            
+            <!-- Barra de acciones para eliminar (Solo Admin) -->
+            <div class="acciones-tabla" id="acciones-tabla" style="display: none;">
+                <button id="btn-seleccionar-todo" class="btn-ghost" type="button">Seleccionar Todo</button>
+                <button id="btn-eliminar-seleccionados" class="btn-ghost btn-ghost--danger" type="button">
+                    <i class="fas fa-trash"></i> Eliminar Seleccionados
+                </button>
+            </div>
+
             <button id="btn-actualizar" class="btn-actualizar" type="button">
                 <i class="fas fa-sync-alt" aria-hidden="true"></i> Actualizar Datos
             </button>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>pH</th>
-                        <th>Temp (°C)</th>
-                        <th>Litros</th>
-                        <th>Estado</th>
-                    </tr>
-                </thead>
-                <tbody id="tabla-muestras">
-                    <tr>
-                        <td colspan="5">Cargando datos...</td>
-                    </tr>
-                </tbody>
-            </table>
+            
+            <div class="tabla-scroll">
+                <table>
+                    <thead>
+                        <tr>
+                            <th id="th-checkbox" style="display: none; width: 40px;">
+                                <input type="checkbox" id="check-todos" title="Seleccionar todos">
+                            </th>
+                            <th>Fecha</th>
+                            <th>pH</th>
+                            <th>Temp (°C)</th>
+                            <th>Litros</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabla-muestras">
+                        <tr><td colspan="6">Cargando datos...</td></tr>
+                    </tbody>
+                </table>
+            </div>
         </section>
 
-        <!-- Gráfico de tendencia de pH: Admin y Supervisor -->
         <section class="card" id="seccion-grafico" hidden>
             <h2><i class="fas fa-chart-line" aria-hidden="true"></i> Tendencia de pH</h2>
             <div class="grafico-wrap">
@@ -108,7 +106,6 @@
             <p class="grafico__vacio" id="grafico-vacio" hidden>Sin datos para graficar.</p>
         </section>
 
-        <!-- Deductor de precios: solo Administrador -->
         <section class="card precio" id="seccion-precio" hidden>
             <h2><i class="fas fa-calculator" aria-hidden="true"></i> Deductor de Precios</h2>
             <div class="precio__grid">
@@ -136,7 +133,6 @@
         </section>
     </main>
 
-    <!-- Panel de configuración (solo Administrador) -->
     <dialog id="modal-config" class="modal" aria-labelledby="modal-config-titulo">
         <div class="modal__panel">
             <div class="modal__header">
@@ -145,25 +141,12 @@
                     <i class="fas fa-times" aria-hidden="true"></i>
                 </button>
             </div>
-
             <dl class="modal__datos">
-                <div>
-                    <dt>Usuario</dt>
-                    <dd id="config-nombre">-</dd>
-                </div>
-                <div>
-                    <dt>Rol</dt>
-                    <dd id="config-rol">-</dd>
-                </div>
-                <div>
-                    <dt>ID de sesión</dt>
-                    <dd id="config-id">-</dd>
-                </div>
+                <div><dt>Usuario</dt><dd id="config-nombre">-</dd></div>
+                <div><dt>Rol</dt><dd id="config-rol">-</dd></div>
+                <div><dt>ID de sesión</dt><dd id="config-id">-</dd></div>
             </dl>
-
-            <p class="modal__nota">
-                Módulo de configuración en construcción: aquí se administrarán usuarios, lotes y reglas de alerta de pH.
-            </p>
+            <p class="modal__nota">Módulo de configuración en construcción: aquí se administrarán usuarios, lotes y reglas de alerta de pH.</p>
         </div>
     </dialog>
 
