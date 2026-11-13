@@ -12,20 +12,17 @@ function createWindow() {
     },
   });
 
-  // Construir la ruta absoluta al frontend
-  // app.getAppPath() devuelve la raíz del proyecto (backend-calidad-leche)
-  const rutaFrontend = path.join(app.getAppPath(), '..', 'frontend', 'index.html');
-  
-  console.log("Cargando archivo desde:", rutaFrontend);
-  
+  // En desarrollo usa app.getAppPath(), en producción usa process.resourcesPath
+  const rutaFrontend = app.isPackaged 
+    ? path.join(process.resourcesPath, 'frontend', 'index.html')
+    : path.join(app.getAppPath(), 'frontend', 'index.html');
+
+  console.log("Cargando frontend desde:", rutaFrontend);
   win.loadFile(rutaFrontend);
-  
-  // win.webContents.openDevTools(); // Descomenta si quieres ver la consola de la ventana
 }
 
 app.whenReady().then(() => {
   createWindow();
-
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });

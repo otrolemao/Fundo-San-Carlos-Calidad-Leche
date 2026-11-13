@@ -3,7 +3,7 @@
    Rol 1 = Administrador · Rol 2 = Supervisor · Rol 3 = Operador
    ========================================================== */
 
-const API_URL = 'http://localhost:3001/api/muestras';
+const API_URL = 'https://fundo-san-carlos-backend.onrender.com';
 const RUTA_LOGIN = 'login.html';
 const LOTE_POR_DEFECTO = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11';
 

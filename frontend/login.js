@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:3001/api/auth/login';
+const API_URL = 'https://fundo-san-carlos-backend.onrender.com';
 
 const formLogin = document.getElementById('form-login');
 const mensajeDiv = document.getElementById('mensaje-login');
