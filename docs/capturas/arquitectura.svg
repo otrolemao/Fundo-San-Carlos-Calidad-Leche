@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#ee6018"/>
+    </marker>
+    <marker id="arrowGray" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <rect width="1600" height="900" fill="#ffffff"/>
+
+  <text x="70" y="72" font-family="Segoe UI, Arial, sans-serif" font-size="40" font-weight="700" fill="#111827">Arquitectura del sistema</text>
+  <text x="70" y="108" font-family="Segoe UI, Arial, sans-serif" font-size="20" fill="#6b7280">Sistema de Gestión de Calidad de Leche · Fundo San Carlos (COLUN)</text>
+
+  <!-- Sensor -->
+  <rect x="70" y="170" width="330" height="180" rx="18" fill="#fff7f0" stroke="#ee6018" stroke-width="3"/>
+  <text x="235" y="214" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#b3440c">CAPA DE CAMPO</text>
+  <text x="235" y="252" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">Sensor de pH</text>
+  <text x="235" y="284" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Arduino + ESP8266 · sonda BNC</text>
+  <text x="235" y="312" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Lectura cada 10 segundos</text>
+
+  <!-- API -->
+  <rect x="520" y="140" width="380" height="240" rx="18" fill="#1f2937"/>
+  <rect x="520" y="140" width="380" height="8" rx="4" fill="#ee6018"/>
+  <text x="710" y="190" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#ee6018">CAPA DE SERVICIOS</text>
+  <text x="710" y="234" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="32" font-weight="700" fill="#ffffff">API REST</text>
+  <text x="710" y="270" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#e5e7eb">Node.js 22 · Express 5</text>
+  <text x="710" y="300" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="18" fill="#e5e7eb">JWT · bcrypt · validaciones</text>
+  <rect x="590" y="322" width="240" height="34" rx="17" fill="#ee6018"/>
+  <text x="710" y="345" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700" fill="#0c0c0e">DESPLEGADA EN RENDER</text>
+
+  <!-- DB -->
+  <rect x="1030" y="170" width="330" height="180" rx="18" fill="#eef4f8" stroke="#2b6cb0" stroke-width="3"/>
+  <text x="1195" y="214" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#2b6cb0">CAPA DE DATOS</text>
+  <text x="1195" y="252" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">PostgreSQL</text>
+  <text x="1195" y="284" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Supabase · pooler 6543</text>
+  <text x="1195" y="312" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">7 tablas · claves UUID</text>
+
+  <!-- Frontend -->
+  <rect x="520" y="560" width="380" height="170" rx="18" fill="#f6f7f8" stroke="#6b7280" stroke-width="3"/>
+  <text x="710" y="602" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#4b5563">CAPA DE PRESENTACIÓN</text>
+  <text x="710" y="640" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">Frontend</text>
+  <text x="710" y="672" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">HTML · CSS · JavaScript</text>
+  <text x="710" y="700" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Chart.js · interfaz por rol</text>
+
+  <!-- Electron -->
+  <rect x="1030" y="560" width="330" height="170" rx="18" fill="#fff7f0" stroke="#ee6018" stroke-width="3"/>
+  <text x="1195" y="602" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#b3440c">DISTRIBUCIÓN</text>
+  <text x="1195" y="640" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">App de escritorio</text>
+  <text x="1195" y="672" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Electron 45 · Electron Forge</text>
+  <text x="1195" y="700" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">Instalador .exe (Squirrel)</text>
+
+  <!-- Security -->
+  <rect x="70" y="560" width="330" height="170" rx="18" fill="#f1f7f2" stroke="#4a7c59" stroke-width="3"/>
+  <text x="235" y="602" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700" letter-spacing="1.5" fill="#4a7c59">TRANSVERSAL</text>
+  <text x="235" y="640" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" fill="#111827">Seguridad</text>
+  <text x="235" y="672" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">JWT HS256 · expira en 2 h</text>
+  <text x="235" y="700" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#4b5563">bcrypt · 3 roles · validación</text>
+
+  <!-- Arrows -->
+  <line x1="400" y1="260" x2="512" y2="260" stroke="#ee6018" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="456" y="240" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#6b7280">JSON · HTTPS</text>
+
+  <line x1="900" y1="260" x2="1022" y2="260" stroke="#ee6018" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="961" y="240" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#6b7280">SQL · pg</text>
+
+  <line x1="710" y1="380" x2="710" y2="552" stroke="#6b7280" stroke-width="4" marker-start="url(#arrowGray)" marker-end="url(#arrowGray)"/>
+  <rect x="724" y="444" width="196" height="30" fill="#ffffff"/>
+  <text x="822" y="465" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#6b7280">HTTPS + Bearer token</text>
+
+  <line x1="900" y1="645" x2="1022" y2="645" stroke="#ee6018" stroke-width="4" marker-end="url(#arrow)"/>
+  <text x="961" y="625" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#6b7280">empaquetado</text>
+
+  <line x1="235" y1="730" x2="235" y2="760" stroke="#4a7c59" stroke-width="2" stroke-dasharray="5 5"/>
+  <line x1="235" y1="760" x2="520" y2="760" stroke="#4a7c59" stroke-width="2" stroke-dasharray="5 5" marker-end="url(#arrowGray)"/>
+  <text x="380" y="785" text-anchor="middle" font-family="Segoe UI, Arial, sans-serif" font-size="15" fill="#6b7280">protege todas las rutas /api</text>
+
+  <text x="70" y="848" font-family="Segoe UI, Arial, sans-serif" font-size="16" fill="#6b7280">Flujo: sensor → API → base de datos → frontend → aplicación de escritorio. La API es el único punto de acceso a los datos.</text>
+</svg>
